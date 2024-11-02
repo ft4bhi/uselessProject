@@ -8,6 +8,21 @@ SCREEN_HEIGHT = 600
 SCREEN_WIDTH = 1100
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+# Message lists for collisions
+JUMP_DEATH_MESSAGES = [
+    "Who told you to jump, idiot?!",
+    "Nice jump... NOT!",
+    "Maybe don't jump next time?",
+    "Epic fail!",
+]
+
+COLLISION_MESSAGES = [
+    "Ouch! That hurts!",
+    "Watch where you're going!",
+    "Careful there!",
+    "Bumped again?",
+]
+
 RUNNING = [pygame.image.load(os.path.join("Assets/Dino", "DinoRun1.png")),
            pygame.image.load(os.path.join("Assets/Dino", "DinoRun2.png"))]
 JUMPING = pygame.image.load(os.path.join("Assets/Dino", "DinoJump.png"))
@@ -132,8 +147,6 @@ class Obstacle:
 
     def update(self):
         global game_speed
-
-        # Adjust jump velocity based on game speed
         adjusted_jump_vel = self.jump_vel + (game_speed * 0.2)
 
         if self.rect.x <= Dinosaur.X_POS + 200 and not self.is_jumping and self.jump_cooldown == 0:
@@ -164,14 +177,12 @@ class SmallCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.original_y = 325  # Set initial y-position for reset
+        self.original_y = 325
         self.rect.y = self.original_y
-
-        # Adjust hitbox dimensions
-        self.rect.width -= 10  # Reduce width
-        self.rect.height -= 10  # Reduce height
-        self.rect.x += 5  # Offset to the right
-        self.rect.y += 5  # Offset downwards
+        self.rect.width -= 10
+        self.rect.height -= 10
+        self.rect.x += 5
+        self.rect.y += 5
 
 class LargeCactus(Obstacle):
     def __init__(self, image):
@@ -179,13 +190,10 @@ class LargeCactus(Obstacle):
         super().__init__(image, self.type)
         self.original_y = 300
         self.rect.y = self.original_y
-
-        # Adjust hitbox dimensions
-        self.rect.width -= 10  # Reduce width
-        self.rect.height -= 10  # Reduce height
-        self.rect.x += 5  # Offset to the right
-        self.rect.y += 5  # Offset downwards
-
+        self.rect.width -= 10
+        self.rect.height -= 10
+        self.rect.x += 5
+        self.rect.y += 5
 
 class Bird(Obstacle):
     def __init__(self, image):
@@ -194,7 +202,7 @@ class Bird(Obstacle):
         self.original_y = 250
         self.rect.y = self.original_y
         self.index = 0
-        self.jump_allowed = True  # Birds should be able to jump
+        self.jump_allowed = True
 
     def draw(self, SCREEN):
         if self.index >= 9:
@@ -202,7 +210,14 @@ class Bird(Obstacle):
         SCREEN.blit(self.image[self.index // 5], self.rect)
         self.index += 1
 
-
+def show_message(message, duration=1000):
+    temp_font = pygame.font.Font('freesansbold.ttf', 20)
+    text = temp_font.render(message, True, (255, 0, 0))  # Red text
+    text_rect = text.get_rect()
+    text_rect.center = (SCREEN_WIDTH // 2, 100)  # Position at top center
+    SCREEN.blit(text, text_rect)
+    pygame.display.update()
+    pygame.time.delay(duration)
 
 def main():
     global game_speed, x_pos_bg, y_pos_bg, points, obstacles
@@ -262,21 +277,29 @@ def main():
             obstacle.draw(SCREEN)
             obstacle.update()
             if player.dino_rect.colliderect(obstacle.rect):
-                pygame.time.delay(2000)
-                death_count += 1
-                menu(death_count)
+                if player.dino_jump:
+                    show_message(random.choice(JUMP_DEATH_MESSAGES))
+                    pygame.time.delay(2000)
+                    death_count += 1
+                    menu(death_count)
+                else:
+                    # Just show message without stopping the game
+                    temp_font = pygame.font.Font('freesansbold.ttf', 20)
+                    text = temp_font.render(random.choice(COLLISION_MESSAGES), True, (255, 0, 0))
+                    text_rect = text.get_rect()
+                    text_rect.center = (SCREEN_WIDTH // 2, 100)
+                    SCREEN.blit(text, text_rect)
+                    # Brief color flash without delay
+                    SCREEN.fill((255, 200, 200))
+                    pygame.display.update()
 
         background()
-
         cloud.draw(SCREEN)
         cloud.update()
-
         score()
-
         clock.tick(30)
         pygame.display.update()
-
-
+        
 def menu(death_count):
     global points
     run = True
@@ -303,6 +326,5 @@ def menu(death_count):
                 run = False
             if event.type == pygame.KEYDOWN:
                 main()
-
 
 menu(death_count=0)
