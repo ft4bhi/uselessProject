@@ -125,9 +125,34 @@ class Obstacle:
         self.type = type
         self.rect = self.image[self.type].get_rect()
         self.rect.x = SCREEN_WIDTH
+        self.jump_vel = 10
+        self.is_jumping = False
+        self.jump_cooldown = 0
+        self.original_y = self.rect.y
 
     def update(self):
+        global game_speed
+
+        # Adjust jump velocity based on game speed
+        adjusted_jump_vel = self.jump_vel + (game_speed * 0.2)
+
+        if self.rect.x <= Dinosaur.X_POS + 200 and not self.is_jumping and self.jump_cooldown == 0:
+            self.is_jumping = True
+            self.jump_cooldown = 30
+
+        if self.jump_cooldown > 0:
+            self.jump_cooldown -= 1
+
+        if self.is_jumping:
+            self.rect.y -= adjusted_jump_vel * 2
+            adjusted_jump_vel -= 0.8
+            if adjusted_jump_vel < -self.jump_vel:
+                self.is_jumping = False
+                adjusted_jump_vel = self.jump_vel
+                self.rect.y = self.original_y
+
         self.rect.x -= game_speed
+
         if self.rect.x < -self.rect.width:
             obstacles.pop()
 
@@ -139,28 +164,44 @@ class SmallCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.rect.y = 325
+        self.original_y = 325  # Set initial y-position for reset
+        self.rect.y = self.original_y
 
+        # Adjust hitbox dimensions
+        self.rect.width -= 10  # Reduce width
+        self.rect.height -= 10  # Reduce height
+        self.rect.x += 5  # Offset to the right
+        self.rect.y += 5  # Offset downwards
 
 class LargeCactus(Obstacle):
     def __init__(self, image):
         self.type = random.randint(0, 2)
         super().__init__(image, self.type)
-        self.rect.y = 300
+        self.original_y = 300
+        self.rect.y = self.original_y
+
+        # Adjust hitbox dimensions
+        self.rect.width -= 10  # Reduce width
+        self.rect.height -= 10  # Reduce height
+        self.rect.x += 5  # Offset to the right
+        self.rect.y += 5  # Offset downwards
 
 
 class Bird(Obstacle):
     def __init__(self, image):
         self.type = 0
         super().__init__(image, self.type)
-        self.rect.y = 250
+        self.original_y = 250
+        self.rect.y = self.original_y
         self.index = 0
+        self.jump_allowed = True  # Birds should be able to jump
 
     def draw(self, SCREEN):
         if self.index >= 9:
             self.index = 0
-        SCREEN.blit(self.image[self.index//5], self.rect)
+        SCREEN.blit(self.image[self.index // 5], self.rect)
         self.index += 1
+
 
 
 def main():
