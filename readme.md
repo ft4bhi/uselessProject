@@ -3,6 +3,9 @@
 
 This is a humorous, "useless" twist on the classic Chrome Dinosaur game. Our version takes a fun spin on the obstacles—whenever the dinosaur runs into one, it humorously "throws" the obstacle away instead of causing the game to end. This project is made by **Shadil AM** and **Abhiram PS**.
 
+
+working demo video in >>>
+https://youtu.be/aBD4_LqKgUg?feature=shared
 ## Game Overview
 
 The game uses **Pygame** to simulate a side-scrolling environment where a dinosaur can:
